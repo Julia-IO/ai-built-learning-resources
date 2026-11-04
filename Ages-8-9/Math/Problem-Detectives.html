@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Problem Detectives</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Patrick+Hand&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Layout: a detective's notebook page. Case file + stage panel on the left, the notebook of findings on the right. */
+  --paper:#fbf8ef;
+  --rule:#d9e4ef;
+  --ink:#2a2a3a;
+  --pencil:#6e6e80;
+  --margin:#e9a9a5;
+  --marker:#ffe46b;
+  --blue:#2f6fb5;
+  --good:#2e8b57;
+  --oops:#c8433a;
+  --display:"Caveat Brush","Comic Sans MS","Chalkboard SE",cursive;
+  --body:"Patrick Hand","Comic Sans MS","Chalkboard SE",cursive;
+  --sketch:255px 15px 225px 15px/15px 225px 15px 255px;
+  --sketch2:15px 255px 15px 225px/225px 15px 255px 15px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--paper);
+  background-image:
+    linear-gradient(90deg,transparent 46px,var(--margin) 46px,var(--margin) 48px,transparent 48px),
+    repeating-linear-gradient(180deg,transparent 0 31px,var(--rule) 31px 32px);
+  color:var(--ink);
+  font-family:var(--body);
+  font-size:20px;
+  line-height:1.45;
+  min-height:100vh;
+}
+.wrap{max-width:1100px;margin:0 auto;padding:18px 20px 40px 64px;display:grid;gap:18px}
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand h1{font-family:var(--display);font-weight:400;font-size:44px;margin:0;line-height:1;text-wrap:balance}
+.brand p{margin:2px 0 0;color:var(--pencil);font-size:18px}
+.levels{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.tally{font-size:20px;padding:4px 12px;border:2px dashed var(--pencil);border-radius:var(--sketch2)}
+
+button{font-family:var(--body);font-size:20px;color:var(--ink);cursor:pointer}
+.btn{
+  background:#fff;border:2.5px solid var(--ink);border-radius:var(--sketch);
+  padding:6px 16px;box-shadow:3px 3px 0 var(--ink);transition:transform .12s;
+}
+.btn:hover{transform:rotate(-1deg) translateY(-1px)}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.btn.primary{background:var(--marker)}
+.btn.ghost{box-shadow:none;border-style:dashed}
+.btn[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.btn small{font-size:15px;opacity:.75}
+:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+
+.grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:820px){.grid{grid-template-columns:1fr}.wrap{padding-left:56px}}
+@media (max-width:420px){.wrap{padding:14px 16px 32px 56px}.brand h1{font-size:36px}body{font-size:18px}}
+
+.card{background:#fffdf7;border:2.5px solid var(--ink);border-radius:var(--sketch);padding:18px 20px;position:relative}
+.card + .card{margin-top:18px}
+.case-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.case-head h2{font-family:var(--display);font-weight:400;font-size:30px;margin:0}
+.dots{display:flex;gap:6px}
+.dot{width:22px;height:22px;border:2px solid var(--ink);border-radius:50%;display:grid;place-items:center;font-size:13px;background:#fff}
+.dot.now{background:var(--marker)}
+.dot.done{background:var(--ink);color:var(--marker)}
+.tape{position:absolute;top:-12px;left:50%;width:90px;height:22px;background:rgba(255,228,107,.75);transform:translateX(-50%) rotate(-3deg);border:1px solid rgba(0,0,0,.08)}
+.story{font-size:24px;line-height:1.7;margin:4px 0 0}
+.num{
+  font-family:var(--body);font-size:24px;border:2px dashed var(--blue);background:transparent;
+  border-radius:var(--sketch2);padding:0 6px;margin:0 1px;line-height:1.25;color:var(--blue);
+}
+.num:disabled{cursor:default;border-color:transparent;color:var(--ink)}
+.num.on{background:linear-gradient(transparent 15%,var(--marker) 15%,var(--marker) 88%,transparent 88%);border-style:solid;border-color:var(--ink);color:var(--ink)}
+.num.on:disabled{border-color:transparent}
+
+.stages{list-style:none;padding:0;margin:0 0 14px;display:flex;flex-wrap:wrap;gap:8px}
+.stages li{padding:3px 12px;border:2px solid var(--pencil);border-radius:var(--sketch2);color:var(--pencil);font-size:18px}
+.stages li.now{border-color:var(--ink);color:var(--ink);background:var(--marker)}
+.stages li.done{border-color:var(--good);color:var(--good);text-decoration:line-through;text-decoration-thickness:2px}
+
+.panel h3{font-family:var(--display);font-weight:400;font-size:28px;margin:0 0 4px}
+.panel p.lead{margin:0 0 12px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.opts{display:grid;gap:10px;margin:8px 0 4px}
+.opt{text-align:left;width:100%}
+
+.eq{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:30px;margin:10px 0 14px}
+.slot{
+  min-width:66px;height:56px;border:2.5px dashed var(--ink);border-radius:var(--sketch2);
+  background:#fff;font-size:30px;display:grid;place-items:center;padding:0 10px;
+}
+.slot.filled{border-style:solid;background:var(--marker)}
+.ops{display:flex;gap:6px}
+.op{width:44px;height:46px;font-size:30px;padding:0;border:2.5px solid var(--ink);background:#fff;border-radius:var(--sketch)}
+.op[aria-pressed="true"]{background:var(--blue);color:#fff}
+input.res,input.ans,select.ans{
+  font-family:var(--body);font-size:28px;height:58px;border:2.5px solid var(--ink);border-radius:var(--sketch2);
+  background:#fff;color:var(--ink);padding:0 10px;
+}
+input.res{width:96px}
+input.ans{width:110px}
+select.ans{font-size:24px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 12px}
+.chip{border:2px solid var(--ink);background:#fff;border-radius:var(--sketch);padding:2px 12px;font-size:22px;box-shadow:2px 2px 0 var(--ink)}
+.chip span{display:block;font-size:14px;color:var(--pencil);line-height:1.1}
+.label{font-size:17px;color:var(--pencil);margin:0}
+.sentence{display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:28px;margin:10px 0 14px}
+
+.feedback{min-height:1.5em;margin:14px 0 0;padding:8px 12px;border-left:5px solid transparent;font-size:20px}
+.feedback:empty{padding:0;border:0}
+.feedback.good{border-color:var(--good);color:var(--good);background:rgba(46,139,87,.07)}
+.feedback.oops{border-color:var(--oops);color:var(--oops);background:rgba(200,67,58,.07)}
+.feedback.hint{border-color:var(--blue);color:var(--blue);background:rgba(47,111,181,.07)}
+.shake{animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+@media (prefers-reduced-motion:reduce){.shake{animation:none}.btn{transition:none}.pop{animation:none!important}}
+
+.notebook h2{font-family:var(--display);font-weight:400;font-size:28px;margin:0 0 6px}
+.notebook h3{font-size:19px;margin:12px 0 2px;color:var(--pencil);font-weight:400;text-transform:uppercase;letter-spacing:.06em}
+.notebook ul{margin:0;padding-left:20px}
+.notebook li{margin:2px 0}
+.notebook .empty{color:var(--pencil);font-style:italic;margin:0}
+.notebook .eqline{font-size:24px;font-variant-numeric:tabular-nums}
+.notebook .final{font-size:22px;background:linear-gradient(transparent 55%,var(--marker) 55%);display:inline}
+.tick{color:var(--good)}
+.cross{color:var(--oops)}
+
+.stars{font-size:64px;letter-spacing:6px;line-height:1;margin:6px 0}
+.stars .on{color:#f2b705;-webkit-text-stroke:2px var(--ink)}
+.stars .off{color:transparent;-webkit-text-stroke:2px var(--pencil)}
+.pop{animation:pop .5s ease-out}
+@keyframes pop{0%{transform:scale(.6) rotate(-8deg)}70%{transform:scale(1.08)}100%{transform:scale(1)}}
+.big{font-size:26px;margin:6px 0 14px}
+.howto{color:var(--pencil);font-size:17px;margin:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <svg width="58" height="58" viewBox="0 0 60 60" aria-hidden="true">
+        <circle cx="25" cy="25" r="15" fill="#fff" stroke="#2a2a3a" stroke-width="3" stroke-dasharray="70 3 20 2"/>
+        <path d="M18 21q4-6 11-4" fill="none" stroke="#2f6fb5" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M36 37l14 14" stroke="#2a2a3a" stroke-width="6" stroke-linecap="round"/>
+        <path d="M35.5 36.2l15 14.6" stroke="#ffe46b" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <h1>Problem Detectives</h1>
+        <p>Gather the data, solve the equations, write the answer.</p>
+      </div>
+    </div>
+    <div class="levels" id="levels"></div>
+  </header>
+
+  <div class="grid">
+    <div>
+      <section class="card" id="case"></section>
+      <section class="card panel" id="panel"></section>
+    </div>
+    <aside class="card notebook" id="notebook" aria-live="polite"></aside>
+  </div>
+  <p class="howto">Tip for grown-ups: read each case aloud together, then let your detective do the tapping and the thinking. Each case earns up to 3 stars. Mistakes lower the stars, but hints don't.</p>
+</div>
+
+<script>
+const PROBLEMS = [
+  // ---------- EASY: one step ----------
+  {level:1, text:"Lucy has [245] stickers. Her cousin gives her [178] more. How many stickers does Lucy have now?",
+   data:[{l:"stickers Lucy has",n:1},{l:"stickers from her cousin",n:1}],
+   find:["How many stickers Lucy has now","How many cousins Lucy has","How many stickers her cousin has left"],
+   steps:[{q:"How many stickers does Lucy have altogether?",a:245,op:"+",b:178,r:423,hint:"Lucy gets MORE stickers, so we put the two amounts together."}],
+   ans:{pre:"Lucy has",post:"now.",units:["stickers","cousins","pages"],unit:"stickers"}},
+  {level:1, text:"A school has [532] pupils. [287] of them are girls. How many boys are there?",
+   data:[{l:"pupils in the school",n:1},{l:"girls",n:1}],
+   find:["How many boys are at the school","How many pupils there are altogether","How many girls are at the school"],
+   steps:[{q:"How many pupils are left when we take the girls away?",a:532,op:"−",b:287,r:245,hint:"All the pupils are boys or girls. Take the girls away from all the pupils and the boys are left."}],
+   ans:{pre:"There are",post:"at the school.",units:["boys","girls","schools"],unit:"boys"}},
+  {level:1, text:"Each box has [24] pencils. The teacher buys [6] boxes. How many pencils does she have?",
+   data:[{l:"pencils in each box",n:1},{l:"boxes the teacher buys",n:1}],
+   find:["How many pencils the teacher has","How many boxes she buys","How many pencils are in one box"],
+   steps:[{q:"6 boxes with 24 pencils in each. How many pencils?",a:24,op:"×",b:6,r:144,hint:"There are 6 groups with the same number in each group. Equal groups mean multiply."}],
+   ans:{pre:"The teacher has",post:".",units:["pencils","boxes","teachers"],unit:"pencils"}},
+  {level:1, text:"Mum has [96] sweets to share equally between [8] friends. How many sweets does each friend get?",
+   data:[{l:"sweets to share",n:1},{l:"friends",n:1}],
+   find:["How many sweets each friend gets","How many friends there are","How many sweets there are altogether"],
+   steps:[{q:"Share 96 sweets equally between 8 friends.",a:96,op:"÷",b:8,r:12,hint:"Sharing equally means dividing. The number being shared goes first."}],
+   ans:{pre:"Each friend gets",post:".",units:["sweets","friends","bags"],unit:"sweets"}},
+  {level:1, text:"Paula reads [8] pages every day. Her book has [120] pages. How many days will it take her to finish the book?",
+   data:[{l:"pages Paula reads each day",n:1},{l:"pages in the book",n:1}],
+   find:["How many days Paula needs to finish the book","How many pages the book has","How many books Paula reads"],
+   steps:[{q:"How many groups of 8 pages fit into 120 pages?",a:120,op:"÷",b:8,r:15,hint:"We split 120 pages into groups of 8. Splitting into equal groups means dividing."}],
+   ans:{pre:"Paula will finish the book in",post:".",units:["days","pages","books"],unit:"days"}},
+
+  // ---------- MEDIUM: two steps ----------
+  {level:2, text:"A bus has [48] passengers. At the next stop, [15] people get off and [9] people get on. How many passengers are on the bus now?",
+   data:[{l:"passengers on the bus",n:1},{l:"people who get off",n:1},{l:"people who get on",n:1}],
+   find:["How many passengers are on the bus now","How many people get off","How many stops the bus makes"],
+   steps:[
+     {q:"First, 15 people get off. How many passengers are left?",a:48,op:"−",b:15,r:33,hint:"Getting off means fewer people on the bus, so we take away."},
+     {q:"Then 9 people get on. How many passengers are there now?",a:33,op:"+",b:9,r:42,hint:"Getting on means more people on the bus, so we add."}],
+   ans:{pre:"There are",post:"on the bus now.",units:["passengers","stops","buses"],unit:"passengers"}},
+  {level:2, text:"Rex the dog eats [3] tins of food every day. There are [7] days in a week. How many tins does Rex eat in [2] weeks?",
+   data:[{l:"tins Rex eats each day",n:1},{l:"days in a week",n:1},{l:"weeks",n:1}],
+   find:["How many tins Rex eats in 2 weeks","How many tins Rex eats in one day","How many days there are in a week"],
+   steps:[
+     {q:"First: how many days are there in 2 weeks?",a:2,op:"×",b:7,r:14,hint:"2 weeks, each with 7 days. That's 2 equal groups of 7."},
+     {q:"Rex eats 3 tins every day for 14 days. How many tins?",a:3,op:"×",b:14,r:42,hint:"14 days with 3 tins each day. Equal groups again, so multiply."}],
+   ans:{pre:"Rex eats",post:"in 2 weeks.",units:["tins","days","dogs"],unit:"tins"}},
+  {level:2, text:"Martha buys [4] packs of yoghurts. Each pack has [6] yoghurts. Her family eats [9] of them. How many yoghurts are left?",
+   data:[{l:"packs of yoghurts",n:1},{l:"yoghurts in each pack",n:1},{l:"yoghurts the family eats",n:1}],
+   find:["How many yoghurts are left","How many packs Martha buys","How many yoghurts the family eats"],
+   steps:[
+     {q:"First: how many yoghurts does Martha buy?",a:4,op:"×",b:6,r:24,hint:"4 packs with 6 yoghurts in each. Equal groups mean multiply."},
+     {q:"The family eats 9. How many are left?",a:24,op:"−",b:9,r:15,hint:"Eating them means there are fewer, so take away."}],
+   ans:{pre:"There are",post:"left.",units:["yoghurts","packs","families"],unit:"yoghurts"}},
+  {level:2, text:"Ben buys a book for €[12] and a pencil case for €[5]. He pays with a €[20] note. How much change does he get?",
+   data:[{l:"euros for the book",n:1},{l:"euros for the pencil case",n:1},{l:"euros Ben pays with",n:1}],
+   find:["How much change Ben gets","How much the book costs","How many things Ben buys"],
+   steps:[
+     {q:"First: how much does Ben spend altogether?",a:12,op:"+",b:5,r:17,hint:"Ben buys two things. Put the two prices together."},
+     {q:"He pays with €20. How much change does he get?",a:20,op:"−",b:17,r:3,hint:"Change is the money left over. Take what he spent away from what he paid."}],
+   ans:{pre:"Ben gets",post:"in change.",units:["euros","books","notes"],unit:"euros"}},
+  {level:2, text:"A bakery bakes [150] muffins and puts [6] muffins on each tray. By lunchtime it has sold [18] trays. How many trays are left?",
+   data:[{l:"muffins baked",n:1},{l:"muffins on each tray",n:1},{l:"trays sold",n:1}],
+   find:["How many trays are left","How many muffins are on each tray","How many trays are sold"],
+   steps:[
+     {q:"First: how many trays does the bakery fill?",a:150,op:"÷",b:6,r:25,hint:"Split 150 muffins into groups of 6. Splitting into equal groups means dividing."},
+     {q:"18 trays are sold. How many trays are left?",a:25,op:"−",b:18,r:7,hint:"Selling trays means fewer trays, so take away."}],
+   ans:{pre:"There are",post:"left.",units:["trays","muffins","bakeries"],unit:"trays"}},
+
+  // ---------- CHALLENGE: hidden extra numbers, more steps ----------
+  {level:3, text:"A farm has [7] cows, [12] hens and [3] tractors. Each cow has [4] legs and each hen has [2] legs. How many animal legs are there on the farm?",
+   data:[{l:"cows",n:1},{l:"hens",n:1},{l:"tractors",n:0},{l:"legs on each cow",n:1},{l:"legs on each hen",n:1}],
+   find:["How many animal legs there are on the farm","How many animals there are","How many tractors there are"],
+   steps:[
+     {q:"Step 1: how many cow legs are there?",a:7,op:"×",b:4,r:28,hint:"7 cows with 4 legs each. Equal groups mean multiply."},
+     {q:"Step 2: how many hen legs are there?",a:12,op:"×",b:2,r:24,hint:"12 hens with 2 legs each. Equal groups again."},
+     {q:"Step 3: how many legs altogether?",a:28,op:"+",b:24,r:52,hint:"Put the cow legs and the hen legs together."}],
+   ans:{pre:"There are",post:"on the farm.",units:["legs","cows","tractors"],unit:"legs"}},
+  {level:3, text:"Nora has €[50]. She buys [3] T-shirts that cost €[9] each and a cap for €[8]. How much money does she have left?",
+   data:[{l:"euros Nora has",n:1},{l:"T-shirts",n:1},{l:"euros for each T-shirt",n:1},{l:"euros for the cap",n:1}],
+   find:["How much money Nora has left","How much one T-shirt costs","How many T-shirts Nora buys"],
+   steps:[
+     {q:"Step 1: how much do the 3 T-shirts cost?",a:3,op:"×",b:9,r:27,hint:"3 T-shirts at €9 each. Equal groups mean multiply."},
+     {q:"Step 2: how much does Nora spend altogether?",a:27,op:"+",b:8,r:35,hint:"Put the T-shirts and the cap together."},
+     {q:"Step 3: how much money is left?",a:50,op:"−",b:35,r:15,hint:"Take what she spent away from what she had."}],
+   ans:{pre:"Nora has",post:"left.",units:["euros","T-shirts","caps"],unit:"euros"}},
+  {level:3, text:"A cinema has [14] rows with [18] seats in each row. The film lasts [95] minutes. [175] tickets have been sold. How many seats are still free?",
+   data:[{l:"rows",n:1},{l:"seats in each row",n:1},{l:"minutes the film lasts",n:0},{l:"tickets sold",n:1}],
+   find:["How many seats are still free","How long the film lasts","How many seats are in one row"],
+   steps:[
+     {q:"Step 1: how many seats are in the whole cinema?",a:14,op:"×",b:18,r:252,hint:"14 rows with 18 seats in each. Equal groups mean multiply."},
+     {q:"Step 2: 175 seats are taken. How many are free?",a:252,op:"−",b:175,r:77,hint:"Every ticket sold fills a seat. Take the sold seats away."}],
+   ans:{pre:"There are",post:"still free.",units:["seats","rows","minutes"],unit:"seats"}},
+  {level:3, text:"Sam collects [36] shells and Mia collects [28] shells. They spend [2] hours on the beach. Then they share all the shells equally between [4] friends. How many shells does each friend get?",
+   data:[{l:"shells Sam collects",n:1},{l:"shells Mia collects",n:1},{l:"hours on the beach",n:0},{l:"friends sharing",n:1}],
+   find:["How many shells each friend gets","How many shells Sam collects","How long they spend on the beach"],
+   steps:[
+     {q:"Step 1: how many shells are there altogether?",a:36,op:"+",b:28,r:64,hint:"Put Sam's shells and Mia's shells together."},
+     {q:"Step 2: share them equally between 4 friends.",a:64,op:"÷",b:4,r:16,hint:"Sharing equally means dividing. The shells being shared go first."}],
+   ans:{pre:"Each friend gets",post:".",units:["shells","hours","friends"],unit:"shells"}},
+  {level:3, text:"A shop has [8] boxes of [25] apples. On Monday it sells [64] apples and on Tuesday it sells [57] apples. How many apples are left?",
+   data:[{l:"boxes",n:1},{l:"apples in each box",n:1},{l:"apples sold on Monday",n:1},{l:"apples sold on Tuesday",n:1}],
+   find:["How many apples are left","How many boxes the shop has","How many apples are sold on Monday"],
+   steps:[
+     {q:"Step 1: how many apples does the shop have?",a:8,op:"×",b:25,r:200,hint:"8 boxes with 25 apples each. Equal groups mean multiply."},
+     {q:"Step 2: how many apples are sold altogether?",a:64,op:"+",b:57,r:121,hint:"Put Monday's and Tuesday's sales together."},
+     {q:"Step 3: how many apples are left?",a:200,op:"−",b:121,r:79,hint:"Take the sold apples away from all the apples."}],
+   ans:{pre:"The shop has",post:"left.",units:["apples","boxes","days"],unit:"apples"}},
+];
+
+// attach the real values from the story text
+PROBLEMS.forEach(p=>{
+  const vals=[...p.text.matchAll(/\[(\d+)\]/g)].map(m=>Number(m[1]));
+  p.data.forEach((d,i)=>d.v=vals[i]);
+});
+
+const LEVELS=[{id:1,name:"Easy",note:"1 step"},{id:2,name:"Medium",note:"2 steps"},{id:3,name:"Challenge",note:"tricky"}];
+const best={1:0,2:0,3:0};
+let S={};
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+const cur=()=>S.list[S.idx];
+const fmt=(n,p)=>p.text.includes("€["+n+"]")?"€"+n:String(n);
+
+function startLevel(lv){
+  S={level:lv,list:PROBLEMS.filter(p=>p.level===lv),idx:0,stars:[]};
+  startCase();
+}
+function startCase(){
+  const p=cur();
+  Object.assign(S,{stage:"gather",sel:new Set(),step:0,slots:{a:null,op:null,b:null},res:"",solved:[],
+    mistakes:0,msg:null,findOpts:shuffle(p.find),found:null,ansN:"",ansU:"",shake:false});
+  render();
+}
+function say(text,kind,isMistake){S.msg={text,kind};if(isMistake){S.mistakes++;S.shake=true;}}
+function starsFor(m){return m===0?3:m<=2?2:1;}
+
+/* ---------- rendering ---------- */
+function render(){
+  renderLevels();renderCase();renderPanel();renderNotebook();
+  if(S.shake){const f=$(".feedback");if(f){f.classList.add("shake");}S.shake=false;}
+}
+function renderLevels(){
+  const total=Object.values(best).reduce((a,b)=>a+b,0);
+  $("#levels").innerHTML=LEVELS.map(l=>`<button class="btn" data-act="level" data-lv="${l.id}" aria-pressed="${S.level===l.id}">${l.name} <small>${l.note}</small></button>`).join("")
+    +`<span class="tally" title="Best stars across all levels">★ ${total} / 45</span>`;
+}
+function renderCase(){
+  const p=cur();
+  if(S.stage==="levelEnd"){$("#case").innerHTML=`<div class="tape"></div><div class="case-head"><h2>${LEVELS[S.level-1].name} cases complete</h2></div><p class="story">Every case in this level is closed. Great work, detective!</p>`;return;}
+  let i=-1;
+  const story=p.text.replace(/\[(\d+)\]/g,(m,n)=>{i++;const on=S.sel.has(i);
+    return `<button class="num${on?" on":""}" data-act="num" data-i="${i}" aria-pressed="${on}" ${S.stage!=="gather"?"disabled":""}>${n}</button>`;});
+  const dots=S.list.map((_,k)=>{const cls=k<S.idx?"done":k===S.idx?"now":"";return `<span class="dot ${cls}">${k<S.idx?S.stars[k]:k+1}</span>`;}).join("");
+  $("#case").innerHTML=`<div class="tape"></div>
+    <div class="case-head"><h2>Case ${S.idx+1} of ${S.list.length}</h2><div class="dots" aria-label="Progress">${dots}</div></div>
+    <p class="story">${story}</p>`;
+}
+function stagesHTML(){
+  const order=["gather","solve","answer"];
+  const map={gather:0,find:0,solve:1,answer:2,done:3};
+  const at=map[S.stage];
+  const names=["1. Gather the data","2. Solve the equations","3. Write the answer"];
+  return `<ol class="stages">${order.map((_,k)=>`<li class="${k<at?"done":k===at?"now":""}">${names[k]}</li>`).join("")}</ol>`;
+}
+function fb(){return `<p class="feedback ${S.msg?S.msg.kind:""}" role="status">${S.msg?esc(S.msg.text):""}</p>`;}
+
+function renderPanel(){
+  const p=cur(),el=$("#panel");
+  if(S.stage==="levelEnd"){
+    const got=S.stars.reduce((a,b)=>a+b,0),max=S.list.length*3;
+    const next=S.level<3?`<button class="btn primary" data-act="level" data-lv="${S.level+1}">Try ${LEVELS[S.level].name} cases</button>`:"";
+    el.innerHTML=`<h3>Your score</h3><div class="stars pop"><span class="on">★</span></div>
+      <p class="big">You earned <b>${got}</b> of ${max} stars.</p>
+      <div class="row">${next}<button class="btn" data-act="replay">Play this level again</button></div>`;
+    return;
+  }
+  let h=stagesHTML();
+  if(S.stage==="gather"){
+    const tricky=p.data.some(d=>!d.n);
+    h+=`<h3>Gather the data</h3>
+      <p class="lead">Read the case carefully. Tap every number you need to solve it.${S.level===3?" Careful: some cases hide a number you <b>don't</b> need!":""}</p>
+      <div class="row"><button class="btn primary" data-act="checkData">Check my data</button><button class="btn ghost" data-act="hint">Hint</button></div>`;
+  } else if(S.stage==="find"){
+    h+=`<h3>What are we trying to find?</h3><p class="lead">Read the question at the end of the case again.</p>
+      <div class="opts">${S.findOpts.map((o,k)=>`<button class="btn opt" data-act="find" data-k="${k}">${esc(o)}</button>`).join("")}</div>`;
+  } else if(S.stage==="solve"){
+    const st=p.steps[S.step],sl=S.slots;
+    const chips=[...p.data.filter(d=>d.n).map(d=>({v:d.v,l:d.l})),...S.solved.map((s,k)=>({v:s.r,l:"answer to step "+(k+1)}))];
+    const slot=(k)=>`<button class="slot${sl[k]!==null?" filled":""}" data-act="slot" data-s="${k}" aria-label="${sl[k]===null?"empty number box":"number "+sl[k]+", tap to clear"}">${sl[k]===null?"?":sl[k]}</button>`;
+    h+=`<h3>Solve the equations${p.steps.length>1?` <small style="font-size:20px">(step ${S.step+1} of ${p.steps.length})</small>`:""}</h3>
+      <p class="lead"><b>${esc(st.q)}</b></p>
+      <p class="label">1. Tap the numbers to put them in the boxes:</p>
+      <div class="chips">${chips.map(c=>`<button class="chip" data-act="chip" data-v="${c.v}">${c.v}<span>${esc(c.l)}</span></button>`).join("")}</div>
+      <p class="label">2. Choose the operation, then work it out:</p>
+      <div class="eq">${slot("a")}
+        <div class="ops" role="group" aria-label="Operation">${["+","−","×","÷"].map(o=>`<button class="op" data-act="op" data-op="${o}" aria-pressed="${sl.op===o}">${o}</button>`).join("")}</div>
+        ${slot("b")}<span>=</span>
+        <input class="res" id="res" inputmode="numeric" autocomplete="off" aria-label="Your answer" placeholder="?" value="${esc(S.res)}">
+      </div>
+      <div class="row"><button class="btn primary" data-act="checkStep">Check</button><button class="btn ghost" data-act="hint">Hint</button></div>`;
+  } else if(S.stage==="answer"){
+    const a=p.ans;
+    h+=`<h3>Write the answer</h3><p class="lead">A detective always answers in a full sentence. Fill in the number and choose the right word.</p>
+      <div class="sentence"><span>${esc(a.pre)}</span>
+        <input class="ans" id="ansN" inputmode="numeric" autocomplete="off" aria-label="Number" placeholder="?" value="${esc(S.ansN)}">
+        <select class="ans" id="ansU" aria-label="Word">
+          <option value="">choose…</option>${a.units.map(u=>`<option ${S.ansU===u?"selected":""}>${esc(u)}</option>`).join("")}
+        </select><span>${esc(a.post)}</span></div>
+      <div class="row"><button class="btn primary" data-act="checkAns">Check</button><button class="btn ghost" data-act="hint">Hint</button></div>`;
+  } else if(S.stage==="done"){
+    const n=S.stars[S.idx];
+    h+=`<h3>Case closed!</h3>
+      <div class="stars pop" aria-label="${n} stars">${[0,1,2].map(k=>`<span class="${k<n?"on":"off"}">★</span>`).join("")}</div>
+      <p class="big">${esc(finalSentence(p))}</p>
+      <p class="lead">${S.mistakes===0?"Perfect detective work, no mistakes!":S.mistakes<=2?"Well done! You fixed your mistakes like a real detective.":"You solved it! Next time, read the case slowly before you start."}</p>
+      <div class="row"><button class="btn primary" data-act="next">${S.idx+1<S.list.length?"Next case":"See my score"}</button></div>`;
+  }
+  h+=fb();
+  el.innerHTML=h;
+}
+function finalSentence(p){const a=p.ans,r=p.steps[p.steps.length-1].r;return `${a.pre} ${a.unit==="euros"?"€"+r:r+" "+a.unit}${a.post==="."?".":" "+a.post}`;}
+
+function renderNotebook(){
+  const p=cur(),el=$("#notebook");
+  if(S.stage==="levelEnd"){el.innerHTML=`<h2>Detective notebook</h2><p class="empty">Pick a level to open new cases.</p>`;return;}
+  const sel=[...S.sel].sort((a,b)=>a-b);
+  const data=sel.length?`<ul>${sel.map(i=>`<li><b>${fmt(p.data[i].v,p)}</b> = ${esc(p.data[i].l)}</li>`).join("")}</ul>`:`<p class="empty">Tap numbers in the case…</p>`;
+  const find=S.found?`<p><span class="tick">✔</span> ${esc(S.found)}</p>`:`<p class="empty">Not decided yet</p>`;
+  const eqs=S.solved.length?S.solved.map(s=>`<div class="eqline">${s.a} ${s.op} ${s.b} = <b>${s.r}</b></div>`).join(""):`<p class="empty">No equations yet</p>`;
+  const ans=S.stage==="done"?`<p class="final">${esc(finalSentence(p))}</p>`:`<p class="empty">Coming soon…</p>`;
+  el.innerHTML=`<h2>Detective notebook</h2>
+    <h3>1 · Data</h3>${data}
+    <h3>We need to find</h3>${find}
+    <h3>2 · Equations</h3>${eqs}
+    <h3>3 · Answer</h3>${ans}`;
+}
+
+/* ---------- logic ---------- */
+function checkData(){
+  const p=cur();
+  const wrong=[...S.sel].filter(i=>!p.data[i].n);
+  const missing=p.data.map((d,i)=>i).filter(i=>p.data[i].n&&!S.sel.has(i));
+  if(!S.sel.size){say("Tap the numbers in the case first. They have dotted lines around them.","hint");}
+  else if(wrong.length){const d=p.data[wrong[0]];say(`Do we need ${fmt(d.v,p)}? That number is about the ${d.l}. Does it help answer the question?`,"oops",true);}
+  else if(missing.length){say(missing.length===1?"Good so far! But one number you need is still missing. Look again.":`Good so far! But ${missing.length} numbers you need are still missing.`,"oops",true);}
+  else{S.stage="find";say("Great detective work! You found all the data you need.","good");}
+  render();
+}
+function chooseFind(k){
+  const p=cur(),o=S.findOpts[k];
+  if(o===p.find[0]){S.found=o;S.stage="solve";say("Yes! Now let's solve it.","good");}
+  else say("Not quite. Read the very last sentence of the case. What does it ask?","oops",true);
+  render();
+}
+function calcTip(st){
+  const {a,b,op}=st;
+  if(op==="+")return "Add the ones first, then the tens, then the hundreds. Remember to carry!";
+  if(op==="−")return "Take away the ones first. If the top digit is too small, borrow a ten.";
+  if(op==="×"){const big=Math.max(a,b),small=Math.min(a,b);
+    if(big>=10){const t=Math.floor(big/10)*10,o=big%10;return `Split the big number: ${big} × ${small} = ${t} × ${small} + ${o} × ${small}.`;}
+    return `Count in ${big}s, ${small} times.`;}
+  return `Think backwards: ${b} × ? = ${a}. Count up in ${b}s until you reach ${a}.`;
+}
+function checkStep(){
+  const p=cur(),st=p.steps[S.step],{a,op,b}=S.slots;
+  if(a===null||b===null||!op){say("Fill both number boxes and choose an operation first.","hint");render();return;}
+  if(op!==st.op){say(st.hint,"oops",true);render();return;}
+  const comm=op==="+"||op==="×";
+  const ok=(a===st.a&&b===st.b)||(comm&&a===st.b&&b===st.a);
+  if(!ok){
+    if(!comm&&a===st.b&&b===st.a)say(op==="−"?"Right numbers, wrong order! When we take away, the bigger amount goes first.":"Right numbers, wrong order! The number being shared goes first.","oops",true);
+    else say("Good operation! But check which numbers belong in this step. Read the step question again.","oops",true);
+    render();return;
+  }
+  if(String(S.res).trim()===""){say("Your equation looks right! Now work it out and write the answer in the last box.","hint");render();return;}
+  if(Number(S.res)!==st.r){say("Your equation is perfect, but the answer isn't quite right. "+calcTip(st),"oops",true);render();return;}
+  S.solved.push({a,op,b,r:st.r});S.step++;S.slots={a:null,op:null,b:null};S.res="";
+  if(S.step>=p.steps.length){S.stage="answer";say(p.steps.length>1?"All the equations are solved!":"Correct! The equation is solved.","good");}
+  else say(`Correct! ${a} ${op} ${b} = ${st.r}. On to the next step.`,"good");
+  render();
+}
+function checkAns(){
+  const p=cur(),r=p.steps[p.steps.length-1].r;
+  if(String(S.ansN).trim()===""||!S.ansU){say("Fill in the number and choose a word.","hint");render();return;}
+  if(Number(S.ansN)!==r){say("Look at your last equation in the notebook. What was its answer?","oops",true);render();return;}
+  if(S.ansU!==p.ans.unit){say(`Is the answer really about ${S.ansU}? Read the question again. What does it ask about?`,"oops",true);render();return;}
+  S.stage="done";S.stars[S.idx]=starsFor(S.mistakes);S.msg=null;render();
+}
+function hint(){
+  const p=cur();
+  if(S.stage==="gather")say(p.data.some(d=>!d.n)?"Read the question at the end first. One number in this case is about something the question doesn't ask about.":"Read the question at the end first. Then find every number that helps answer it.","hint");
+  else if(S.stage==="solve"){const st=p.steps[S.step];say(st.hint,"hint");}
+  else if(S.stage==="answer")say("The number is the answer to your last equation. The word tells us what we counted.","hint");
+  render();
+}
+function next(){
+  if(S.idx+1<S.list.length){S.idx++;startCase();}
+  else{const got=S.stars.reduce((a,b)=>a+b,0);best[S.level]=Math.max(best[S.level],got);S.stage="levelEnd";render();}
+}
+
+document.addEventListener("click",e=>{
+  const t=e.target.closest("[data-act]");if(!t)return;
+  const act=t.dataset.act;
+  if(act==="level")return startLevel(Number(t.dataset.lv));
+  if(act==="replay")return startLevel(S.level);
+  if(act==="num"){const i=Number(t.dataset.i);S.sel.has(i)?S.sel.delete(i):S.sel.add(i);S.msg=null;return render();}
+  if(act==="checkData")return checkData();
+  if(act==="find")return chooseFind(Number(t.dataset.k));
+  if(act==="chip"){const v=Number(t.dataset.v);if(S.slots.a===null)S.slots.a=v;else if(S.slots.b===null)S.slots.b=v;else S.slots.b=v;return render();}
+  if(act==="slot"){S.slots[t.dataset.s]=null;return render();}
+  if(act==="op"){S.slots.op=t.dataset.op;return render();}
+  if(act==="checkStep")return checkStep();
+  if(act==="checkAns")return checkAns();
+  if(act==="hint")return hint();
+  if(act==="next")return next();
+});
+document.addEventListener("input",e=>{
+  if(e.target.id==="res")S.res=e.target.value.replace(/[^0-9]/g,"");
+  if(e.target.id==="ansN")S.ansN=e.target.value.replace(/[^0-9]/g,"");
+  if(e.target.id==="ansU")S.ansU=e.target.value;
+});
+document.addEventListener("change",e=>{if(e.target.id==="ansU")S.ansU=e.target.value;});
+document.addEventListener("keydown",e=>{
+  if(e.key!=="Enter")return;
+  if(e.target.id==="res")checkStep();
+  if(e.target.id==="ansN")checkAns();
+});
+
+startLevel(1);
+</script>
+</body>
+</html>
