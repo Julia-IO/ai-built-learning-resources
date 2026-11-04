@@ -40,6 +40,10 @@ New age levels and subjects follow the same pattern, for example `Ages-10-11/Sci
 
 You can download any HTML file and edit it to fit your learners, for example by changing the problems or the wording.
 
+## Contributing
+
+Would you like to add a resource? New resources are added by age level and subject, in a new branch, through a pull request. See the [contributing guide](CONTRIBUTING.md) for the steps.
+
 ## License
 
 This work is licensed under CC BY 4.0. You are free to share and adapt it, including for commercial use, as long as you give appropriate credit.
