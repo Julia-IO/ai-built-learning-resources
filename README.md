@@ -12,6 +12,7 @@ Everything here is free to use, adapt, and share.
 
 | Name | What children practise | How it works | Open it |
 | --- | --- | --- | --- |
+| Mission: Order of Operations | Order of operations (brackets, × and ÷, then + and −) | Rounds of 10 problems across three levels: adding, subtracting and multiplying, then division, then brackets. Children type the answer on a keypad and can use up to 3 hints, ending with a step-by-step solution. Hints and mistakes lower the points, and common slips, like going left to right, get their own feedback. | [Open it](https://julia-io.github.io/ai-built-learning-resources/Ages-8-9/Math/Mission-Order-Of-Operations.html) |
 | Problem Detectives | Solving word problems | 15 cases across three levels (Easy, Medium, Challenge). Children pick out the data, solve the equations, and write the answer. Each case earns up to 3 stars. Mistakes lower the stars, but hints don't. | [Open it](https://julia-io.github.io/ai-built-learning-resources/Ages-8-9/Math/Problem-Detectives.html) |
 | Times Tables | Multiplication and division | Rounds of 20 questions on the tables from 1 to 10. Children choose multiply, divide, or a mix, and play in Quick mode or count and share in Puppies mode. A progress screen shows how each table is going. | [Open it](https://julia-io.github.io/ai-built-learning-resources/Ages-8-9/Math/Times-Tables.html) |
 
@@ -19,7 +20,7 @@ Everything here is free to use, adapt, and share.
 
 Open the link in any browser, on a computer or tablet. There is no install step and no account needed. You need to be online for the fonts to load.
 
-Times Tables saves your chosen settings and progress in your own browser, so they stay on that device. Problem Detectives starts fresh each time you open it.
+Times Tables saves your chosen settings and progress in your own browser, so they stay on that device. Mission: Order of Operations saves each level's best score the same way. Problem Detectives starts fresh each time you open it.
 
 These resources were built with AI, so please try them yourself before using them with children.
 
@@ -30,6 +31,7 @@ Each resource is a single HTML file, stored by age level and then by subject:
 ```
 Ages-8-9/
 └── Math/
+    ├── Mission-Order-Of-Operations.html
     ├── Problem-Detectives.html
     └── Times-Tables.html
 ```
